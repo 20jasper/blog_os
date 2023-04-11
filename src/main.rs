@@ -3,11 +3,6 @@
 
 use core::panic::PanicInfo;
 
-#[panic_handler]
-fn panic(_info: &PanicInfo) -> ! {
-	loop {}
-}
-
 // the no_mangle attribute ensures the rust compiler does not change the name of
 // the _start function
 #[no_mangle]
@@ -19,4 +14,10 @@ fn panic(_info: &PanicInfo) -> ! {
 // "since there’s nothing left to do if a freestanding binary returns"
 pub extern "C" fn _start() -> ! {
 	panic!()
+}
+
+/// this is called on panic
+#[panic_handler]
+fn panic(_info: &PanicInfo) -> ! {
+	loop {}
 }
