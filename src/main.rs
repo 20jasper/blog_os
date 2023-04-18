@@ -3,17 +3,15 @@
 
 use core::panic::PanicInfo;
 
-static HELLO: &[u8] = b"Hello World!";
 // the no_mangle attribute ensures the rust compiler does not change the name of
 // the _start function
 #[no_mangle]
 // this function is marked with "extern C" since it uses the C convention for
-// calling a function. This creates an FFI, or Foreign Function Interface
-// Reference: https://doc.rust-lang.org/stable/book/ch19-01-unsafe-rust.html#using-extern-functions-to-call-external-code
+// calling a function
 //
 // the "!" return type means it has a divergent return type, or it never
-// divergent return type, or it never only invoked directly "since there’s
-// nothing left to do if a freestanding binary returns"
+// returns, since it will never be called, only invoked directly
+// "since there’s nothing left to do if a freestanding binary returns"
 pub extern "C" fn _start() -> ! {
 	// cast vga_buffer as a raw pointer, which aren't automatically cleaned up,
 	// can be null, and aren't guarunteed to point to valid memory
