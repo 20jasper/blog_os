@@ -25,6 +25,8 @@ jobs:
         run: rustup update ${{ env.TOOLCHAIN }} && rustup default ${{ env.TOOLCHAIN }}
       - name: install rust-src
         run: rustup component add rust-src --toolchain nightly-x86_64-unknown-linux-gnu 
+      - name: install rust-fmt
+        run: rustup component add rustfmt
       - name: build
         run: cargo build --verbose
       - name: check formatting
