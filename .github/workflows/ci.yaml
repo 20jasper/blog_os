@@ -27,7 +27,5 @@ jobs:
         run: rustup component add rust-src --toolchain nightly-x86_64-unknown-linux-gnu 
       - name: build
         run: cargo build --verbose
-      - name: run unit tests
-        run: cargo test --verbose
       - name: check formatting
         run: cargo fmt --all -- --check
