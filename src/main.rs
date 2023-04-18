@@ -22,7 +22,7 @@ pub extern "C" fn _start() -> ! {
 	for (i, &byte) in HELLO.iter().enumerate() {
 		unsafe {
 			// the dereference operator (*) is needed to get the value from the memory
-			// address so we can change it to the bytes in our message
+			// address so we can change it to the bytes in our message.
 
 			*vga_buffer.offset(i as isize * 2) = byte;
 			// write color byte
