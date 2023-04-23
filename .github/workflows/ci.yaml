@@ -14,9 +14,20 @@ env:
 
 jobs:
   ci:
-    name: CI
     timeout-minutes: 10
-    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - identifier: Windows
+            os: windows-latest
+          - identifier: Ubuntu
+            os: ubuntu-latest
+          - identifier: MacOS
+            os: macos-latest
+
+    name: CI - ${{ matrix.identifier }}
+    runs-on: ${{ matrix.os }}
 
     steps:
       - name: checkout code
