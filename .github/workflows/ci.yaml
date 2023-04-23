@@ -23,6 +23,8 @@ jobs:
         uses: actions/checkout@v3
       - name: update rust
         run: rustup update ${{ env.TOOLCHAIN }} && rustup default ${{ env.TOOLCHAIN }}
+      - name: Configure Dependency Caching
+        uses: Swatinem/rust-cache@v2
       - name: build
         run: cargo build --verbose
       - name: check formatting
