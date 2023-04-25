@@ -3,6 +3,8 @@
 
 use core::panic::PanicInfo;
 
+mod vga_buffer;
+
 static HELLO: &[u8] = b"Hello World!";
 // the no_mangle attribute ensures the rust compiler does not change the name of
 // the _start function
