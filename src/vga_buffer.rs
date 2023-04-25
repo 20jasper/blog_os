@@ -25,3 +25,18 @@ pub enum Color {
 	Yellow = 14,
 	White = 15,
 }
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+// similar to the repr trait above—defines the layout of the struct as a u8 in
+// this case
+// https://doc.rust-lang.org/nomicon/other-reprs.html#reprtransparent
+// is it the same as using the repr(u8) trait though??
+#[repr(transparent)]
+// tuple struct
+struct ColorCode(u8);
+
+impl ColorCode {
+	fn new(foreground: Color, background: Color) -> ColorCode {
+		ColorCode((background as u8) << 4 | (foreground as u8))
+	}
+}
