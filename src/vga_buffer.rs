@@ -111,3 +111,17 @@ impl Writer {
 		}
 	}
 }
+
+/// create a new buffer pointing to the vga text buffer
+/// write some text to it
+pub fn print_something() {
+	let mut writer = Writer {
+		column_position: 0,
+		color_code: ColorCode::new(Color::Yellow, Color::Black),
+		buffer: unsafe { &mut *(0xb8000 as *mut Buffer) },
+	};
+
+	writer.write_byte(b'H');
+	writer.write_string("ello ");
+	writer.write_string("Wörld!");
+}
