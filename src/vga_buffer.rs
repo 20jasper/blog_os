@@ -1,3 +1,5 @@
+use core::fmt;
+
 use volatile::Volatile;
 
 #[allow(dead_code)]
@@ -118,6 +120,7 @@ impl Writer {
 /// create a new buffer pointing to the vga text buffer
 /// write some text to it
 pub fn print_something() {
+	use core::fmt::Write;
 	let mut writer = Writer {
 		column_position: 0,
 		color_code: ColorCode::new(Color::Yellow, Color::Black),
@@ -126,5 +129,14 @@ pub fn print_something() {
 
 	writer.write_byte(b'H');
 	writer.write_string("ello ");
-	writer.write_string("Wörld!");
+	write!(writer, "The numbers are {} and {}", 42, 1.0 / 3.0).unwrap();
+}
+
+impl fmt::Write for Writer {
+	/// write_string does not return anything meaningful, so OK(()) is returned
+	/// on success, Ok(()) is returned, and on failure, Err is ruteurned
+	fn write_str(&mut self, s: &str) -> fmt::Result {
+		self.write_string(s);
+		Ok(())
+	}
 }
