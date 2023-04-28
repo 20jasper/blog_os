@@ -5,6 +5,8 @@ use volatile::Volatile;
 
 lazy_static! {
 	/// A global instance of `writer` to write to the VGA Buffer
+	/// The mutex allows for synchronous access to the data within to prevent data
+	/// races
 	pub static ref WRITER: Mutex<Writer> = Mutex::new(Writer {
 		column_position: 0,
 		color_code: ColorCode::new(Color::Yellow, Color::Black),
