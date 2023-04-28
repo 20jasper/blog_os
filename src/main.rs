@@ -19,12 +19,15 @@ pub extern "C" fn _start() -> ! {
 	println!("hello");
 	println!("{}", 4444);
 
+	panic!();
+
 	#[allow(clippy::empty_loop)]
 	loop {}
 }
 
 /// this is called on panic
 #[panic_handler]
-fn panic(_info: &PanicInfo) -> ! {
+fn panic(info: &PanicInfo) -> ! {
+	println!("{info}");
 	loop {}
 }
