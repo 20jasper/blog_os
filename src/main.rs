@@ -16,20 +16,8 @@ mod vga_buffer;
 // divergent return type, or it never only invoked directly "since there’s
 // nothing left to do if a freestanding binary returns"
 pub extern "C" fn _start() -> ! {
-	use core::fmt::Write;
-	vga_buffer::WRITER
-		// block other threads from accessing this data
-		.lock()
-		.write_str("Hello again")
-		.unwrap();
-
-	write!(
-		vga_buffer::WRITER.lock(),
-		", some numbers: {} {}",
-		42,
-		1.337
-	)
-	.unwrap();
+	println!("hello");
+	println!("{}", 4444);
 
 	#[allow(clippy::empty_loop)]
 	loop {}
