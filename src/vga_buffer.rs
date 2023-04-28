@@ -1,6 +1,15 @@
 use core::fmt;
-
+use lazy_static::lazy_static;
 use volatile::Volatile;
+
+lazy_static! {
+	/// A global instance of `writer` to write to the VGA Buffer
+	pub static ref WRITER: Writer = Writer {
+		column_position: 0,
+		color_code: ColorCode::new(Color::Yellow, Color::Black),
+		buffer: unsafe { &mut *(0xb8000 as *mut Buffer) },
+	};
+}
 
 #[allow(dead_code)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -35,11 +44,11 @@ pub enum Color {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-// similar to the repr trait above—defines the layout of the struct as a u8 in
+// similar to the `repr` trait above—defines the layout of the struct as a `u8` in
 // this case
 // https://doc.rust-lang.org/nomicon/other-reprs.html#reprtransparent
 // https://doc.rust-lang.org/reference/type-layout.html#the-transparent-representation
-// is it the same as using the repr(u8) trait though??
+// is it the same as using the `repr(u8)` trait though??
 #[repr(transparent)]
 // tuple struct
 struct ColorCode(u8);
@@ -63,7 +72,7 @@ const BUFFER_HEIGHT: usize = 25;
 const BUFFER_WIDTH: usize = 80;
 /// A buffer of chars to write to
 ///
-/// Volatile is used guaruntee that the compiler reads and writes as we'd expect
+/// `Volatile` is used guaruntee that the compiler reads and writes as we'd expect
 struct Buffer {
 	chars: [[Volatile<ScreenChar>; BUFFER_WIDTH]; BUFFER_HEIGHT],
 }
@@ -101,8 +110,8 @@ impl Writer {
 	}
 
 	/// writes everything in the text buffer to the screen
-	/// skips the first row then hard wraps each line at BUFFER_WIDTH and clears
-	/// the BUFFER_HEIGHT-1th line
+	/// skips the first row then hard wraps each line at `BUFFER_WIDTH` and clears
+	/// the `BUFFER_HEIGHT`-1th line
 	fn new_line(&mut self) {
 		for row in 1..BUFFER_HEIGHT {
 			for col in 0..BUFFER_WIDTH {
@@ -114,7 +123,15 @@ impl Writer {
 		self.column_position = 0;
 	}
 
-	fn clear_row(&mut self, row: usize) { /* TODO */
+	/// clears rows by filling them with spaces
+	fn clear_row(&mut self, row: usize) {
+		let blank = ScreenChar {
+			ascii_character: b' ',
+			color_code: self.color_code,
+		};
+		for col in 0..BUFFER_WIDTH {
+			self.buffer.chars[row][col].write(blank);
+		}
 	}
 
 	/// writes an entire string of ascii characters to th buffer
@@ -147,8 +164,8 @@ pub fn print_something() {
 }
 
 impl fmt::Write for Writer {
-	/// write_string does not return anything meaningful, so OK(()) is returned
-	/// on success, Ok(()) is returned, and on failure, Err is ruteurned
+	/// `write_string` does not return anything meaningful, so `Ok(())` is returned
+	/// on success, `Ok(())` is returned, and on failure, Err is ruteurned
 	fn write_str(&mut self, s: &str) -> fmt::Result {
 		self.write_string(s);
 		Ok(())
