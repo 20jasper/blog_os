@@ -151,21 +151,6 @@ impl Writer {
 	}
 }
 
-/// create a new buffer pointing to the vga text buffer
-/// write some text to it
-pub fn print_something() {
-	use core::fmt::Write;
-	let mut writer = Writer {
-		column_position: 0,
-		color_code: ColorCode::new(Color::Yellow, Color::Black),
-		buffer: unsafe { &mut *(0xb8000 as *mut Buffer) },
-	};
-
-	writer.write_byte(b'H');
-	writer.write_string("ello ");
-	write!(writer, "The numbers are {} and {}", 42, 1.0 / 3.0).unwrap();
-}
-
 impl fmt::Write for Writer {
 	/// `write_string` does not return anything meaningful, so `Ok(())` is returned
 	/// on success, `Ok(())` is returned, and on failure, Err is ruteurned
