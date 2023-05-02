@@ -1,4 +1,4 @@
 [toolchain]
 channel = "nightly"
-components = ["rustfmt", "rust-src", "bootimage"]
+components = ["rustfmt", "rust-src"]
 targets = ["x86_64-unknown-linux-gnu"]
