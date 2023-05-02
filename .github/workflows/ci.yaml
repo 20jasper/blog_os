@@ -32,11 +32,36 @@ jobs:
     steps:
       - name: checkout code
         uses: actions/checkout@v3
+
       - name: update rust
         run: rustup update ${{ env.TOOLCHAIN }} && rustup default ${{ env.TOOLCHAIN }}
       - name: Configure Dependency Caching
         uses: Swatinem/rust-cache@v2
+
+      - name: Install QEMU (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt update
+          sudo apt install qemu-system-x86
+      - name: Install QEMU (macOS)
+        if: runner.os == 'macOS'
+        run: brew install qemu
+        env:
+          HOMEBREW_NO_AUTO_UPDATE: 1
+          HOMEBREW_NO_BOTTLE_SOURCE_FALLBACK: 1
+          HOMEBREW_NO_INSTALL_CLEANUP: 1
+      - name: Install QEMU (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          choco install qemu
+          echo "$Env:Programfiles\qemu" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+        shell: pwsh
+
       - name: build
         run: cargo build --verbose
+
       - name: check formatting
         run: cargo fmt --all -- --check
+
+      - name: test
+        run: cargo test
