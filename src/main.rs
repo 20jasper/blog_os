@@ -6,6 +6,7 @@
 
 use core::panic::PanicInfo;
 
+mod serial;
 mod vga_buffer;
 
 // the no_mangle attribute ensures the rust compiler does not change the name of
@@ -29,10 +30,21 @@ pub extern "C" fn _start() -> ! {
 	loop {}
 }
 
-/// this is called on panic
+/// called on panic
+#[cfg(not(test))]
 #[panic_handler]
 fn panic(info: &PanicInfo) -> ! {
 	println!("{info}");
+	loop {}
+}
+
+/// called on panic in test mode
+#[cfg(test)]
+#[panic_handler]
+fn panic(info: &PanicInfo) -> ! {
+	serial_println!("[failed]\n");
+	serial_println!("Error: {}\n", info);
+	exit_qemu(QemuExitCode::Failed);
 	loop {}
 }
 
@@ -57,7 +69,7 @@ pub fn exit_qemu(exit_code: QemuExitCode) {
 /// runs all tests with the `#[test]` attribute
 #[cfg(test)]
 fn test_runner(tests: &[&dyn Fn()]) {
-	println!("Running {} tests", tests.len());
+	serial_println!("Running {} tests", tests.len());
 	for test in tests {
 		test();
 	}
@@ -67,7 +79,7 @@ fn test_runner(tests: &[&dyn Fn()]) {
 
 #[test_case]
 fn trivial_assertion() {
-	print!("trivial assertion... ");
+	serial_print!("trivial assertion... ");
 	assert_eq!(1, 1);
-	println!("[ok]");
+	serial_println!("[ok]");
 }
