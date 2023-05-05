@@ -68,10 +68,11 @@ pub fn exit_qemu(exit_code: QemuExitCode) {
 
 /// runs all tests with the `#[test]` attribute
 #[cfg(test)]
-fn test_runner(tests: &[&dyn Fn()]) {
+fn test_runner(tests: &[&dyn Testable]) {
 	serial_println!("Running {} tests", tests.len());
+
 	for test in tests {
-		test();
+		test.run();
 	}
 
 	exit_qemu(QemuExitCode::Success);
@@ -79,7 +80,29 @@ fn test_runner(tests: &[&dyn Fn()]) {
 
 #[test_case]
 fn trivial_assertion() {
-	serial_print!("trivial assertion... ");
 	assert_eq!(1, 1);
-	serial_println!("[ok]");
+}
+
+/// trait adding the `run` function
+pub trait Testable {
+	fn run(&self);
+}
+
+/// prints the name of the function, then runs it and logs if it passes. An
+/// error is thrown otherwise
+// implements the testable trait for all types `T` that have the `Fn()` trait
+impl<T> Testable for T
+// where clauses are a much nicer way to write generic constraints in typescript
+// `Type extends string`
+where
+	T: Fn(),
+{
+	fn run(&self) {
+		// print description of a type--in this case, the function name
+		serial_print!("{}...\t", core::any::type_name::<T>());
+		// call self, which is the function
+		self();
+
+		serial_println!("[ok]");
+	}
 }
