@@ -1,8 +1,12 @@
 #![no_std]
 #![no_main]
+#![feature(custom_test_frameworks)]
+#![test_runner(crate::test_runner)]
+#![reexport_test_harness_main = "test_main"]
 
 use core::panic::PanicInfo;
 
+mod serial;
 mod vga_buffer;
 
 // the no_mangle attribute ensures the rust compiler does not change the name of
@@ -19,15 +23,103 @@ pub extern "C" fn _start() -> ! {
 	println!("hello");
 	println!("{}", 4444);
 
-	panic!();
+	#[cfg(test)]
+	test_main();
 
 	#[allow(clippy::empty_loop)]
 	loop {}
 }
 
-/// this is called on panic
+/// called on panic
+#[cfg(not(test))]
 #[panic_handler]
 fn panic(info: &PanicInfo) -> ! {
 	println!("{info}");
 	loop {}
+}
+
+/// called on panic in test mode
+#[cfg(test)]
+#[panic_handler]
+fn panic(info: &PanicInfo) -> ! {
+	serial_println!("[failed]\n");
+	serial_println!("Error: {}\n", info);
+	exit_qemu(QemuExitCode::Failed);
+	loop {}
+}
+
+/// Codes passed to QEMU based on test failure or success
+/// These values are arbitrary
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[repr(u32)]
+pub enum QemuExitCode {
+	Success = 0x10,
+	Failed = 0x11,
+}
+
+pub fn exit_qemu(exit_code: QemuExitCode) {
+	use x86_64::instructions::port::Port;
+
+	unsafe {
+		let mut port = Port::new(0xf4);
+		port.write(exit_code as u32);
+	}
+}
+
+/// runs all tests with the `#[test]` attribute
+#[cfg(test)]
+fn test_runner(tests: &[&dyn Testable]) {
+	serial_println!("Running {} tests", tests.len());
+
+	for test in tests {
+		test.run();
+	}
+
+	exit_qemu(QemuExitCode::Success);
+}
+
+#[test_case]
+fn test_println_does_not_panic() {
+	println!("test_println_simple output");
+}
+
+#[test_case]
+fn test_println_does_not_panic_when_lines_move_off_screen() {
+	for _ in 0..100 {
+		println!("test_println_many output");
+	}
+}
+
+#[test_case]
+fn test_println_writes_to_buffer() {
+	let s = "Some test string that fits on a single line";
+	println!("{}", s);
+	for (i, c) in s.chars().enumerate() {
+		let screen_char = WRITER.lock().buffer.chars[BUFFER_HEIGHT - 2][i].read();
+		assert_eq!(char::from(screen_char.ascii_character), c);
+	}
+}
+
+/// trait adding the `run` function
+pub trait Testable {
+	fn run(&self);
+}
+
+/// prints the name of the function, then runs it and logs if it passes. An
+/// error is thrown otherwise
+// implements the testable trait for all types `T` that have the `Fn()` trait
+impl<T> Testable for T
+// where clauses are a much nicer way to write generic constraints in typescript
+// `Type extends string`
+where
+	T: Fn(),
+{
+	fn run(&self) {
+		// print description of a type--in this case, the function name
+		serial_print!("{}...\t", core::any::type_name::<T>());
+		// call self, which is the function
+		self();
+
+		serial_println!("[ok]");
+	}
 }
