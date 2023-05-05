@@ -79,8 +79,25 @@ fn test_runner(tests: &[&dyn Testable]) {
 }
 
 #[test_case]
-fn trivial_assertion() {
-	assert_eq!(1, 1);
+fn test_println_does_not_panic() {
+	println!("test_println_simple output");
+}
+
+#[test_case]
+fn test_println_does_not_panic_when_lines_move_off_screen() {
+	for _ in 0..100 {
+		println!("test_println_many output");
+	}
+}
+
+#[test_case]
+fn test_println_writes_to_buffer() {
+	let s = "Some test string that fits on a single line";
+	println!("{}", s);
+	for (i, c) in s.chars().enumerate() {
+		let screen_char = WRITER.lock().buffer.chars[BUFFER_HEIGHT - 2][i].read();
+		assert_eq!(char::from(screen_char.ascii_character), c);
+	}
 }
 
 /// trait adding the `run` function
